@@ -1,0 +1,44 @@
+# ✅ STEP 1: Install dependencies
+!pip install tensorflow numpy opencv-python --quiet
+
+# ✅ STEP 2: Import required libraries
+import tensorflow as tf
+import numpy as np
+import cv2
+from tensorflow.keras.applications import efficientnet
+from tensorflow.keras.applications.efficientnet import decode_predictions, preprocess_input
+from google.colab import files
+from PIL import Image
+import io
+import matplotlib.pyplot as plt
+
+# ✅ STEP 3: Load pre-trained EfficientNet model
+model = efficientnet.EfficientNetB0(weights='imagenet')
+
+# ✅ STEP 4: Upload an image
+uploaded = files.upload()  # Select a .jpg/.png image
+
+for filename in uploaded.keys():
+    # ✅ STEP 5: Read and process the image
+    image_data = uploaded[filename]
+    img = Image.open(io.BytesIO(image_data)).convert('RGB')
+    img_resized = img.resize((224, 224))
+    img_array = np.array(img_resized)
+    
+    # ✅ Show the uploaded image
+    plt.imshow(img)
+    plt.axis("off")
+    plt.title("Uploaded Image")
+    plt.show()
+
+    # ✅ STEP 6: Preprocess and predict
+    img_preprocessed = preprocess_input(img_array.astype(np.float32))
+    img_batch = np.expand_dims(img_preprocessed, axis=0)  # Shape: (1, 224, 224, 3)
+
+    predictions = model.predict(img_batch)
+    top_preds = decode_predictions(predictions, top=5)[0]
+
+    # ✅ STEP 7: Print top-5 predictions
+    print("🔍 Top 5 Predictions:")
+    for label_id, label, confidence in top_preds:
+        print(f"{label}: {confidence:.4f}")
